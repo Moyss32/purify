@@ -1,0 +1,4 @@
+# Purify dependencies
+# Utiliza a biblioteca padrão do Python. 
+# Requer tkinter instalado no sistema operacional (geralmente padrão no Windows, 
+# mas no Ubuntu/Debian pode precisar de `sudo apt install python3-tk`).

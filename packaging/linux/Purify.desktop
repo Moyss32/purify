@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Purify
+Comment=Operações de sistema com confirmação e verificação
+Exec=Purify
+Icon=purify
+Categories=System;Utility;
+Terminal=false

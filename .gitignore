@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+*.spec~
+*.AppImage
+*.AppDir/
+*.exe
+*.log
+.pytest_cache/
+.coverage
