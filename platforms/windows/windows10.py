@@ -28,14 +28,14 @@ def _run_json(script: str) -> tuple[bool, Any, str]:
 
 
 class RemoveAppxPackageOperation(Operation):
-    def __init__(self, package_name: str, friendly_name: str, risk: RiskLevel, description: str):
+    def __init__(self, package_name: str, friendly_name: str, risk: RiskLevel, description: str, category: str = "Aplicativos"):
         if not _SAFE_ID.fullmatch(package_name):
             raise ValueError("Identificador Appx inválido.")
         super().__init__(
             id=f"win_rm_appx_{package_name}",
             name=f"Remover {friendly_name}",
             description=description,
-            category="Aplicativos",
+            category=category,
             platform="windows",
             risk=risk,
             reversible=ReversibilityLevel.PARTIAL,
@@ -119,14 +119,14 @@ class RemoveAppxPackageOperation(Operation):
 
 
 class DisableServiceOperation(Operation):
-    def __init__(self, service_name: str, friendly_name: str, risk: RiskLevel, description: str):
+    def __init__(self, service_name: str, friendly_name: str, risk: RiskLevel, description: str, category: str = "Serviços"):
         if not _SAFE_ID.fullmatch(service_name):
             raise ValueError("Identificador de serviço inválido.")
         super().__init__(
             id=f"win_disable_svc_{service_name}",
             name=f"Desativar {friendly_name}",
             description=description,
-            category="Serviços",
+            category=category,
             platform="windows",
             risk=risk,
             reversible=ReversibilityLevel.FULL,
@@ -251,6 +251,7 @@ class DisableServiceOperation(Operation):
 
 def get_operations() -> list[Operation]:
     return [
+        # ── Aplicativos (existentes) ─────────────────────────────────────────
         RemoveAppxPackageOperation("Microsoft.MicrosoftSolitaireCollection", "Microsoft Solitaire", RiskLevel.VERY_LOW, "Coleção de jogos Solitaire; remova apenas se não a utiliza."),
         RemoveAppxPackageOperation("Microsoft.BingWeather", "MS Clima", RiskLevel.VERY_LOW, "Aplicativo de clima do Windows."),
         RemoveAppxPackageOperation("Microsoft.ZuneVideo", "Filmes e TV", RiskLevel.LOW, "Reprodutor de vídeo; confirme que possui uma alternativa."),
@@ -264,14 +265,45 @@ def get_operations() -> list[Operation]:
         RemoveAppxPackageOperation("Microsoft.PowerAutomateDesktop", "Power Automate Desktop", RiskLevel.MEDIUM, "Ferramenta de automação; removê-la interrompe fluxos que dependam dela."),
         RemoveAppxPackageOperation("Microsoft.GetHelp", "Obter Ajuda", RiskLevel.MEDIUM, "Aplicativo de suporte da Microsoft."),
         RemoveAppxPackageOperation("Microsoft.Getstarted", "Dicas do Windows", RiskLevel.VERY_LOW, "Aplicativo de dicas e introdução ao Windows."),
-        RemoveAppxPackageOperation("Microsoft.WindowsFeedbackHub", "Hub de Comentários", RiskLevel.MEDIUM, "Aplicativo usado para enviar feedback e diagnóstico voluntário."),
+        RemoveAppxPackageOperation("Microsoft.WindowsFeedbackHub", "Hub de Comentários", RiskLevel.MEDIUM, "Aplicativo usado para enviar feedback e diagnóstico voluntário à Microsoft."),
         RemoveAppxPackageOperation("Microsoft.YourPhone", "Vincular ao Celular", RiskLevel.MEDIUM, "Integração do Windows com dispositivos móveis."),
         RemoveAppxPackageOperation("MicrosoftTeams", "Microsoft Teams (legado/inbox)", RiskLevel.MEDIUM, "Identidade de pacote usada por algumas versões; pode não corresponder ao novo Teams."),
         RemoveAppxPackageOperation("Microsoft.MicrosoftOfficeHub", "Microsoft 365/Office Hub", RiskLevel.LOW, "Atalho e hub do Microsoft 365/Office."),
-        DisableServiceOperation("WSearch", "Windows Search", RiskLevel.MEDIUM, "Desativar pode tornar a pesquisa/indexação menos útil."),
-        DisableServiceOperation("DiagTrack", "Experiências e Telemetria (DiagTrack)", RiskLevel.LOW, "Desativa o serviço DiagTrack; pode afetar diagnósticos e gestão do Windows."),
-        DisableServiceOperation("dmwappushservice", "WAP Push Message Routing (dmwappushservice)", RiskLevel.MEDIUM, "Serviço de roteamento de mensagens; o impacto depende dos recursos e políticas do dispositivo."),
-        DisableServiceOperation("WerSvc", "Relatório de Erros do Windows", RiskLevel.MEDIUM, "Desativar pode limitar diagnóstico e envio de relatórios de falha."),
-        DisableServiceOperation("SysMain", "SysMain (Superfetch)", RiskLevel.MEDIUM, "O impacto depende do dispositivo e do padrão de uso; não é uma otimização universal."),
-        DisableServiceOperation("wuauserv", "Windows Update", RiskLevel.CRITICAL, "Desativar interrompe atualizações de segurança e pode afetar a Microsoft Store. Não recomendado."),
+        # ── Aplicativos (novos) ──────────────────────────────────────────────
+        RemoveAppxPackageOperation("Microsoft.MicrosoftStickyNotes", "Notas Autoadesivas", RiskLevel.VERY_LOW, "Aplicativo de notas rápidas; remova apenas se não o usa."),
+        RemoveAppxPackageOperation("Microsoft.BingSearch", "Bing Search (app)", RiskLevel.LOW, "Aplicativo de pesquisa Bing."),
+        RemoveAppxPackageOperation("Microsoft.MSPaint", "Paint (legado)", RiskLevel.LOW, "Paint clássico. Se usa o Paint 3D ou não usa Paint, pode remover."),
+        RemoveAppxPackageOperation("Microsoft.Paint", "Paint (app moderno)", RiskLevel.LOW, "Nova versão do Paint do Windows 11. Confirme que não o utiliza."),
+        RemoveAppxPackageOperation("Microsoft.WindowsMaps", "Mapas do Windows", RiskLevel.VERY_LOW, "Aplicativo de mapas; remova se prefere alternativas."),
+        RemoveAppxPackageOperation("Microsoft.Wallet", "Carteira", RiskLevel.LOW, "Aplicativo de pagamentos/carteira digital."),
+        RemoveAppxPackageOperation("Microsoft.549981C3F5F10", "Cortana", RiskLevel.MEDIUM, "Assistente virtual Cortana. Remover pode afetar recursos de busca por voz. Reinstalável pela Store."),
+        RemoveAppxPackageOperation("Microsoft.BingFinance", "MSN Dinheiro", RiskLevel.VERY_LOW, "Aplicativo financeiro Bing/MSN."),
+        RemoveAppxPackageOperation("Microsoft.BingSports", "MSN Esportes", RiskLevel.VERY_LOW, "Aplicativo de esportes Bing/MSN."),
+        RemoveAppxPackageOperation("Microsoft.BingTranslator", "Tradutor Bing", RiskLevel.VERY_LOW, "Aplicativo tradutor Bing."),
+        RemoveAppxPackageOperation("Microsoft.Todos", "Microsoft To Do", RiskLevel.LOW, "Aplicativo de lista de tarefas. Remova se usa alternativa."),
+        RemoveAppxPackageOperation("Microsoft.OutlookForWindows", "Outlook (novo)", RiskLevel.LOW, "Nova versão do Outlook. Não afeta o Outlook instalado via Office/Microsoft 365."),
+        # ── Xbox ─────────────────────────────────────────────────────────────
+        RemoveAppxPackageOperation("Microsoft.XboxApp", "Xbox", RiskLevel.LOW, "Aplicativo Xbox principal. Remover não afeta jogos instalados.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.XboxIdentityProvider", "Xbox Identity Provider", RiskLevel.MEDIUM, "Fornece autenticação Xbox. Remover pode afetar login em jogos com integração Xbox Live.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.XboxGameOverlay", "Xbox Game Overlay", RiskLevel.LOW, "Sobreposição da Game Bar durante jogos. Remover não afeta desempenho de jogos.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.XboxGamingOverlay", "Xbox Game Bar", RiskLevel.LOW, "Barra de jogo (Win+G). Remover não impede que você jogue.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.XboxSpeechToTextOverlay", "Xbox Speech To Text", RiskLevel.LOW, "Reconhecimento de voz para jogos Xbox. Raramente usado.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.XboxTCUI", "Xbox TCUI", RiskLevel.MEDIUM, "Interface de usuário de telecomunicação Xbox. Alguns jogos podem precisar disso.", category="Xbox"),
+        RemoveAppxPackageOperation("Microsoft.GamingApp", "Xbox (novo aplicativo)", RiskLevel.LOW, "Nova versão do aplicativo Xbox no Windows 11/10. Remover não afeta jogos.", category="Xbox"),
+        # ── Serviços (existentes) ─────────────────────────────────────────────
+        DisableServiceOperation("WSearch", "Windows Search", RiskLevel.MEDIUM, "Indexação de arquivos. Desativar pode tornar a pesquisa menos útil."),
+        DisableServiceOperation("DiagTrack", "Experiências e Telemetria (DiagTrack)", RiskLevel.LOW, "Coleta dados de diagnóstico e telemetria. Desativar melhora privacidade.", category="Telemetria"),
+        DisableServiceOperation("dmwappushservice", "WAP Push Message Routing", RiskLevel.MEDIUM, "Serviço de roteamento de mensagens WAP; impacto depende do dispositivo.", category="Telemetria"),
+        DisableServiceOperation("WerSvc", "Relatório de Erros do Windows", RiskLevel.MEDIUM, "Desativar limita envio de relatórios de falha à Microsoft.", category="Privacidade"),
+        DisableServiceOperation("SysMain", "SysMain (Superfetch)", RiskLevel.MEDIUM, "Pré-carregamento de aplicativos. Impacto varia por dispositivo."),
+        DisableServiceOperation("wuauserv", "Windows Update", RiskLevel.CRITICAL, "Desativar interrompe atualizações de segurança. Não recomendado."),
+        # ── Serviços (novos) ─────────────────────────────────────────────────
+        DisableServiceOperation("Fax", "Serviço de Fax", RiskLevel.VERY_LOW, "Serviço de fax legado; raramente necessário em computadores domésticos."),
+        DisableServiceOperation("RemoteRegistry", "Registro Remoto", RiskLevel.LOW, "Permite edição remota do registro. Desativar melhora segurança em redes não confiáveis.", category="Privacidade"),
+        DisableServiceOperation("lfsvc", "Serviço de Geolocalização", RiskLevel.LOW, "Gerencia dados de localização. Desativar impede que apps usem GPS/localização.", category="Privacidade"),
+        DisableServiceOperation("MapsBroker", "Gerenciador de Mapas Baixados", RiskLevel.VERY_LOW, "Gerencia mapas offline. Remova se não usa o aplicativo Mapas."),
+        DisableServiceOperation("RetailDemo", "Modo de Demonstração para Varejo", RiskLevel.VERY_LOW, "Serviço para lojas de varejo; inútil em uso doméstico."),
+        DisableServiceOperation("XblAuthManager", "Gerenciador de Autenticação Xbox Live", RiskLevel.MEDIUM, "Autenticação Xbox Live. Desativar pode impedir login em jogos com Xbox Live.", category="Xbox"),
+        DisableServiceOperation("XblGameSave", "Salvamento de Jogo Xbox Live", RiskLevel.MEDIUM, "Sincroniza saves de jogos com Xbox Live. Desativar interrompe sincronização.", category="Xbox"),
+        DisableServiceOperation("XboxNetApiSvc", "Serviço de Rede Xbox Live", RiskLevel.MEDIUM, "Suporte de rede para jogos Xbox Live.", category="Xbox"),
     ]

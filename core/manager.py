@@ -240,10 +240,33 @@ class PurifyManager:
         self,
         logger_callback: Callable[[str], None] | None = None,
         cancel_event: threading.Event | None = None,
+        create_restore_point: bool = True,
     ) -> list[tuple[Operation, OperationResult]]:
         selected = self.get_selected_operations()
         results: list[tuple[Operation, OperationResult]] = []
         cancellation_requested = False
+
+        # Criar ponto de restauração se plataforma Windows e há ops que exigem admin
+        if create_restore_point and self.os_info.get("platform") == "windows":
+            has_admin_ops = any(op.requires_admin for op in selected)
+            if has_admin_ops:
+                try:
+                    from platforms.windows.utils import create_restore_point as _create_rp
+                    rp_ok, rp_msg = _create_rp()
+                    self._log(logger_callback, rp_msg)
+                except Exception as exc:
+                    rp_ok, rp_msg = False, f"Não foi possível criar ponto de restauração: {exc}"
+                if not rp_ok:
+                    blocked_message = (
+                        f"Lote bloqueado: {rp_msg} Nenhuma operação foi executada, "
+                        "pois o ponto de restauração é obrigatório neste lote."
+                    )
+                    for op in selected:
+                        result = OperationResult(OperationState.FAILED, blocked_message)
+                        results.append((op, result))
+                        self._log(logger_callback, f"Bloqueado: {op.name} — {blocked_message}")
+                    return results
+
         for op in selected:
             if cancellation_requested or (cancel_event and cancel_event.is_set()):
                 cancellation_requested = True
@@ -254,6 +277,15 @@ class PurifyManager:
             results.append((op, self.execute_operation(op, logger_callback)))
         return results
 
+    def has_rollback_snapshot(self, op: Operation) -> bool:
+        """Indica se há pré-estado salvo para uma operação com rollback total."""
+        if op.reversibility is not ReversibilityLevel.FULL:
+            return False
+        try:
+            return get_pre_state(op.id) is not None
+        except Exception:
+            return False
+
     def rollback_operation(
         self,
         op: Operation,
@@ -261,6 +293,11 @@ class PurifyManager:
     ) -> OperationResult:
         if op.reversibility is not ReversibilityLevel.FULL:
             result = OperationResult(OperationState.FAILED, "Esta operação não oferece rollback automático total.")
+            self._log(logger_callback, f"Falhou ao reverter {op.name} — motivo: {result.message}")
+            return result
+        privilege_error = self._privilege_failure(op)
+        if privilege_error:
+            result = OperationResult(OperationState.FAILED, privilege_error)
             self._log(logger_callback, f"Falhou ao reverter {op.name} — motivo: {result.message}")
             return result
         try:

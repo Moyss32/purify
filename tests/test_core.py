@@ -215,6 +215,23 @@ class CoreResultTests(unittest.TestCase):
         self.assertEqual(results[1][1].state, OperationState.CANCELLED)
         self.assertEqual(two.execute_calls, 0)
 
+    @patch("platforms.windows.utils.create_restore_point", return_value=(False, "dois métodos falharam"))
+    def test_windows_batch_is_blocked_when_restore_point_cannot_be_created(self, create_restore_point):
+        one = FakeOperation(requires_admin=True)
+        two = FakeOperation(requires_admin=True)
+        one.is_selected = two.is_selected = True
+        manager = PurifyManager(
+            [one, two],
+            {"platform": "windows", "is_admin": True},
+        )
+
+        results = manager.execute_selected()
+
+        create_restore_point.assert_called_once()
+        self.assertEqual([result.state for _, result in results], [OperationState.FAILED] * 2)
+        self.assertTrue(all("Nenhuma operação foi executada" in result.message for _, result in results))
+        self.assertEqual(one.execute_calls + two.execute_calls, 0)
+
     @patch("core.manager.clear_pre_state")
     @patch("core.manager.get_pre_state", return_value={"active": False})
     def test_rollback_verifies_restored_state(self, get_state, clear_state):

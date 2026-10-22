@@ -10,9 +10,9 @@ O **Purify** é um protótipo local de interface para algumas operações de man
 |---|---|---|
 | Windows 10/11 | Catálogo de Appx por identidade exata e desativação de serviços, incluindo itens migrados dos scripts legados | Consultas e alterações cobertas por respostas PowerShell simuladas; scan da GUI testado com estados simulados; não executado em Windows |
 | Debian-based | Limpeza do cache APT, remoção do pacote `snapd` e desativação de alguns serviços systemd | Testes simulados; não executado em uma instalação Linux alvo |
-| Android | Fora do escopo desta entrega | Nenhum APK/código Android incluído; veja [ANDROID_SCOPE.md](ANDROID_SCOPE.md) |
+| Android | Fora do escopo desta entrega | Nenhum APK/código Android incluído |
 
-A lista é intencionalmente pequena. “Debian-based” não significa que todas as distribuições, versões, edições ou políticas corporativas foram testadas. Consulte [SUPPORT_MATRIX.md](SUPPORT_MATRIX.md).
+A lista é intencionalmente pequena. “Debian-based” não significa que todas as distribuições, versões, edições ou políticas corporativas foram testadas.
 
 ## Instalação para desenvolvimento
 
@@ -46,20 +46,17 @@ APT, `systemctl`, `dpkg-query`, `find` e `du` são ferramentas do próprio siste
 
 ## Interface
 
-O Purify é um aplicativo **desktop Tkinter**, não um site. A interface usa navegação por categorias, busca, seleção explícita e detalhes de risco/impacto. As decisões de visual e as referências consultadas estão em [UI_DESIGN.md](UI_DESIGN.md).
+O Purify é um aplicativo **desktop Tkinter**, não um site. A interface usa navegação por categorias, busca, seleção explícita e detalhes de risco/impacto. Para operações totalmente reversíveis com pré-estado salvo, o comando **Reverter** aparece no diálogo de detalhes da operação.
 
 ## Privilégios e segurança
 
 - No Windows, `purify.py` usa UAC (`runas`) se o processo não estiver elevado. Não usa ExecutionPolicy Bypass como elevação.
 - No Linux, comandos são passados como lista de argumentos, sem `shell=True`; `pkexec` autentica operações administrativas individualmente.
+- No Windows, antes de um lote com ações administrativas, o Purify tenta criar e confirmar um ponto de restauração com `Checkpoint-Computer` e, se necessário, tenta a chamada CIM de `SystemRestore`. Se os dois caminhos falharem ou não confirmarem um novo ponto, o lote inteiro é bloqueado.
 - O arquivo `~/.purify/session_backup.json` guarda os pré-estados necessários a rollback total e metadados de algumas operações não reversíveis. Diretório e arquivo recebem permissões restritas em sistemas POSIX quando possível.
 - Não execute a interface em sistemas remotos sem console se a operação puder interromper a rede.
 - Os scripts `debloat-win11-V.*.ps1` são legados e estão **desativados**: mostram aviso e encerram sem alterar o sistema. Não os use como alternativa à GUI.
 - A elevação aumenta o impacto possível de uma falha; use somente operações compreendidas e selecionadas.
-
-Veja [SECURITY.md](SECURITY.md) para o modelo e as limitações.
-
-Para a lista de ações migradas e as que foram adiadas por exigirem suporte adicional, consulte [LEGACY_SCRIPT_COVERAGE.md](LEGACY_SCRIPT_COVERAGE.md).
 
 ## Reversibilidade atual
 
@@ -81,4 +78,4 @@ Ao adicionar uma operação, implemente consulta de estado estruturada, aplicabi
 
 ## Empacotamento
 
-Ainda não há binários `.exe`/`.AppImage` validados nesta entrega. Consulte [BUILDING.md](BUILDING.md) para instruções de build; o build de Windows requer Windows, e AppImage deve ser testado em cada baseline suportado.
+Ainda não há binários `.exe`/`.AppImage` validados nesta entrega. Os scripts de build estão em `packaging/windows/build.bat` e `packaging/linux/build_appimage.sh`; o build de Windows requer Windows, e AppImage deve ser testado em cada baseline suportado.

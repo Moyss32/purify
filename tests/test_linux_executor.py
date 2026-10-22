@@ -1,7 +1,10 @@
+import sys
 import unittest
 from unittest.mock import patch, Mock
 
 from platforms.linux.utils import run_shell
+
+_IS_LINUX = sys.platform != "win32"
 
 
 class LinuxExecutorTests(unittest.TestCase):
@@ -15,6 +18,7 @@ class LinuxExecutorTests(unittest.TestCase):
         self.assertNotIn("shell", kwargs)
         self.assertEqual(run.call_args.args[0], ["apt-get", "clean"])
 
+    @unittest.skipUnless(_IS_LINUX, "os.geteuid not available on Windows")
     @patch("platforms.linux.utils.os.geteuid", return_value=1000)
     @patch("platforms.linux.utils.shutil.which", return_value="/usr/bin/pkexec")
     @patch("platforms.linux.utils.subprocess.run")
@@ -24,6 +28,7 @@ class LinuxExecutorTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(run.call_args.args[0], ["/usr/bin/pkexec", "systemctl", "disable", "cups"])
 
+    @unittest.skipUnless(_IS_LINUX, "os.geteuid not available on Windows")
     @patch("platforms.linux.utils.os.geteuid", return_value=1000)
     @patch("platforms.linux.utils.shutil.which", return_value=None)
     @patch("platforms.linux.utils.subprocess.run")
